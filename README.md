@@ -16,7 +16,7 @@ Adaptix 是一款为渗透测试人员打造的可扩展的后渗透和对抗模
 
 ![](https://adaptix-framework.gitbook.io/adaptix-framework/~gitbook/image?url=https%3A%2F%2F2104178602-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FS8p8XLFtLmf0NkofQvoa%252Fuploads%252FYyoRo3MmqD8iQaEApgaK%252FScreenshot_20250624_000326.png%3Falt%3Dmedia%26token%3De87b1861-91fa-413a-b9f7-8fabf362fb7d&width=768&dpr=4&quality=100&sign=eca8f023&sv=2)
 
-翻译效果
+根据系统语言环境自动切换中/英显示
 ![](https://github.com/myisake/AdaptixC2_i18n/blob/main/img/01.png)
 
 ![](https://github.com/myisake/AdaptixC2_i18n/blob/main/img/02.png)
@@ -63,11 +63,6 @@ Adaptix 是一款为渗透测试人员打造的可扩展的后渗透和对抗模
 * Beacon Agent
 * TCP/mTLS Gopher 监听器
 * Gopher Agent
-
-## 如何贡献
-
-请将您的更改推送到 **dev** 分支。否则，更改将需要被手动合并到 dev 分支。
-*(请注意：此为原项目的贡献规则，您可以根据自己仓库的管理方式进行修改。)*
 
 ## 许可证 (License)
 
