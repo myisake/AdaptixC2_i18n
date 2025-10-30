@@ -10,7 +10,7 @@ class MainUI;
 class AuthProfile;
 
 class MainAdaptix : public QWidget {
-
+Q_OBJECT
 public:
     MainUI*   mainUI   = nullptr;
     Storage*  storage  = nullptr;

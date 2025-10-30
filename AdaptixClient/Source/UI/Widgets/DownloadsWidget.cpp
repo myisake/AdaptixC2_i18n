@@ -5,14 +5,16 @@
 #include <Client/Requestor.h>
 #include <Client/AuthProfile.h>
 #include <Client/AxScript/AxScriptManager.h>
+#include <Utils/NonBlockingDialogs.h>
 
-
-DownloadsWidget::DownloadsWidget(AdaptixWidget* w)
+DownloadsWidget::DownloadsWidget(AdaptixWidget* w) : DockTab(tr("Downloads"), w->GetProfile()->GetProject(), ":/icons/downloads")
 {
     this->adaptixWidget = w;
     this->createUI();
 
     connect( tableWidget, &QTableWidget::customContextMenuRequested, this, &DownloadsWidget::handleDownloadsMenu );
+
+    this->dockWidget->setWidget(this);
 }
 
 void DownloadsWidget::createUI()
@@ -34,16 +36,16 @@ void DownloadsWidget::createUI()
     tableWidget->horizontalHeader()->setHighlightSections( false );
     tableWidget->verticalHeader()->setVisible( false );
 
-    tableWidget->setHorizontalHeaderItem( 0, new QTableWidgetItem(tr("File ID") ) );
-    tableWidget->setHorizontalHeaderItem( 1, new QTableWidgetItem(tr("Agent Type") ) );
-    tableWidget->setHorizontalHeaderItem( 2, new QTableWidgetItem(tr("Agent ID") ) );
-    tableWidget->setHorizontalHeaderItem( 3, new QTableWidgetItem(tr("User") ) );
-    tableWidget->setHorizontalHeaderItem( 4, new QTableWidgetItem(tr("Computer") ) );
-    tableWidget->setHorizontalHeaderItem( 5, new QTableWidgetItem(tr("File") ) );
-    tableWidget->setHorizontalHeaderItem( 6, new QTableWidgetItem(tr("Date") ) );
-    tableWidget->setHorizontalHeaderItem( 7, new QTableWidgetItem(tr("Size") ) );
-    tableWidget->setHorizontalHeaderItem( 8, new QTableWidgetItem(tr("Received") ) );
-    tableWidget->setHorizontalHeaderItem( 9, new QTableWidgetItem(tr("Progress") ) );
+    tableWidget->setHorizontalHeaderItem( 0, new QTableWidgetItem( tr("File ID") ) );
+    tableWidget->setHorizontalHeaderItem( 1, new QTableWidgetItem( tr("Agent Type") ) );
+    tableWidget->setHorizontalHeaderItem( 2, new QTableWidgetItem( tr("Agent ID") ) );
+    tableWidget->setHorizontalHeaderItem( 3, new QTableWidgetItem( tr("User") ) );
+    tableWidget->setHorizontalHeaderItem( 4, new QTableWidgetItem( tr("Computer") ) );
+    tableWidget->setHorizontalHeaderItem( 5, new QTableWidgetItem( tr("File") ) );
+    tableWidget->setHorizontalHeaderItem( 6, new QTableWidgetItem( tr("Date") ) );
+    tableWidget->setHorizontalHeaderItem( 7, new QTableWidgetItem( tr("Size") ) );
+    tableWidget->setHorizontalHeaderItem( 8, new QTableWidgetItem( tr("Received") ) );
+    tableWidget->setHorizontalHeaderItem( 9, new QTableWidgetItem( tr("Progress") ) );
     tableWidget->hideColumn( 0 );
 
     mainGridLayout = new QGridLayout(this );
@@ -260,7 +262,7 @@ void DownloadsWidget::actionSync() const
     bool ok = false;
     bool result = HttpReqGetOTP("download", fileId, *adaptixWidget->GetProfile(), &message, &ok);
     if( !result ) {
-        MessageError("Response timeout");
+        MessageError(tr("Response timeout"));
         return;
     }
     if ( !ok ) {
@@ -274,14 +276,16 @@ void DownloadsWidget::actionSync() const
     pathParts = fileName.split("/", Qt::SkipEmptyParts);
     fileName = pathParts[pathParts.size()-1];
 
-    QString savedPath = QFileDialog::getSaveFileName( nullptr, "Save File", fileName, "All Files (*.*)" );
-    if (savedPath.isEmpty())
-        return;
+    NonBlockingDialogs::getSaveFileName(const_cast<DownloadsWidget*>(this), tr("Save File"), fileName, "All Files (*.*)",
+        [this, otp](const QString& savedPath) {
+            if (savedPath.isEmpty())
+                return;
 
-    QString sUrl = adaptixWidget->GetProfile()->GetURL() + "/otp/download/sync";
+            QString sUrl = adaptixWidget->GetProfile()->GetURL() + "/otp/download/sync";
 
-    DialogDownloader dialog(sUrl, otp, savedPath);
-    dialog.exec();
+            DialogDownloader dialog(sUrl, otp, savedPath);
+            dialog.exec();
+    });
 }
 
 void DownloadsWidget::actionSyncCurl() const
@@ -296,7 +300,7 @@ void DownloadsWidget::actionSyncCurl() const
     bool ok = false;
     bool result = HttpReqGetOTP("download", fileId, *adaptixWidget->GetProfile(), &message, &ok);
     if( !result ) {
-        MessageError("Response timeout");
+        MessageError(tr("Response timeout"));
         return;
     }
     if ( !ok ) {
@@ -315,7 +319,7 @@ void DownloadsWidget::actionSyncCurl() const
     QString command = QString("curl -k %1 -H 'OTP: %2' -o %3").arg(sUrl).arg(otp).arg(fileName);
 
     QInputDialog inputDialog;
-    inputDialog.setWindowTitle("Sync file as curl");
+    inputDialog.setWindowTitle(tr("Sync file as curl"));
     inputDialog.setLabelText("Curl command:");
     inputDialog.setTextEchoMode(QLineEdit::Normal);
     inputDialog.setTextValue(command);
@@ -336,7 +340,7 @@ void DownloadsWidget::actionSyncWget() const
     bool ok = false;
     bool result = HttpReqGetOTP("download", fileId, *adaptixWidget->GetProfile(), &message, &ok);
     if( !result ) {
-        MessageError("Response timeout");
+        MessageError(tr("Response timeout"));
         return;
     }
     if ( !ok ) {
@@ -355,7 +359,7 @@ void DownloadsWidget::actionSyncWget() const
     QString command = QString("wget --no-check-certificate %1 --header='OTP: %2' -O %3").arg(sUrl).arg(otp).arg(fileName);
 
     QInputDialog inputDialog;
-    inputDialog.setWindowTitle("Sync file as curl");
+    inputDialog.setWindowTitle(tr("Sync file as curl"));
     inputDialog.setLabelText("Curl command:");
     inputDialog.setTextEchoMode(QLineEdit::Normal);
     inputDialog.setTextValue(command);
@@ -373,7 +377,7 @@ void DownloadsWidget::actionDelete() const
         bool ok = false;
         bool result = HttpReqDownloadAction("delete", fileId, *(adaptixWidget->GetProfile()), &message, &ok);
         if (!result) {
-            MessageError("Response timeout");
+            MessageError(tr("Response timeout"));
             return;
         }
 

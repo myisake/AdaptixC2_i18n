@@ -5,7 +5,7 @@
 
 class CustomSplashScreen : public QSplashScreen
 {
-Q_OBJECT
+
 
 protected:
     void mousePressEvent(QMouseEvent *event) override {
@@ -17,8 +17,9 @@ protected:
     }
 };
 
-class DialogSyncPacket
+class DialogSyncPacket : public QObject
 {
+    Q_OBJECT
     QLabel*       logNameLabel       = nullptr;
     QLabel*       logProgressLabel   = nullptr;
     QProgressBar* progressBar        = nullptr;
@@ -29,7 +30,7 @@ public:
     int totalLogs    = 0;
     int receivedLogs = 0;
 
-    explicit DialogSyncPacket();
+    explicit DialogSyncPacket(QObject *parent = nullptr);
     ~DialogSyncPacket();
 
     void init(int count);

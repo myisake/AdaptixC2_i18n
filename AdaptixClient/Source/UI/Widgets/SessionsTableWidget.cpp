@@ -15,7 +15,7 @@
 #include <Client/AuthProfile.h>
 #include <MainAdaptix.h>
 
-SessionsTableWidget::SessionsTableWidget( AdaptixWidget* w )
+SessionsTableWidget::SessionsTableWidget( AdaptixWidget* w ) : DockTab(tr("Sessions table"), w->GetProfile()->GetProject(), ":/icons/format_list")
 {
     this->adaptixWidget = w;
 
@@ -40,7 +40,7 @@ SessionsTableWidget::SessionsTableWidget( AdaptixWidget* w )
     shortcutSearch->setContext(Qt::WidgetShortcut);
     connect(shortcutSearch, &QShortcut::activated, this, &SessionsTableWidget::toggleSearchPanel);
 
-
+    this->dockWidget->setWidget(this);
 }
 
 SessionsTableWidget::~SessionsTableWidget() = default;
@@ -97,21 +97,21 @@ void SessionsTableWidget::createUI()
     tableWidget->horizontalHeader()->setHighlightSections( false );
     tableWidget->verticalHeader()->setVisible( false );
 
-    tableWidget->setHorizontalHeaderItem( ColumnAgentID,   new QTableWidgetItem(tr( "ID" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnAgentType, new QTableWidgetItem(tr( "Type" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnListener,  new QTableWidgetItem(tr( "Listener" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnExternal,  new QTableWidgetItem(tr( "External" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnInternal,  new QTableWidgetItem(tr( "Internal" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnDomain,    new QTableWidgetItem(tr( "Domain" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnComputer,  new QTableWidgetItem(tr( "Computer" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnUser,      new QTableWidgetItem(tr( "User" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnOs,        new QTableWidgetItem(tr( "OS" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnProcess,   new QTableWidgetItem(tr( "Process" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnProcessId, new QTableWidgetItem(tr( "PID" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnThreadId,  new QTableWidgetItem(tr( "TID" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnTags,      new QTableWidgetItem(tr( "Tags" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnLast,      new QTableWidgetItem(tr( "Last" )) );
-    tableWidget->setHorizontalHeaderItem( ColumnSleep,     new QTableWidgetItem(tr( "Sleep" )) );
+    tableWidget->setHorizontalHeaderItem( ColumnAgentID,   new QTableWidgetItem(tr("ID") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnAgentType, new QTableWidgetItem(tr("Type") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnListener,  new QTableWidgetItem(tr("Listener") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnExternal,  new QTableWidgetItem(tr("External") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnInternal,  new QTableWidgetItem(tr("Internal") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnDomain,    new QTableWidgetItem(tr("Domain") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnComputer,  new QTableWidgetItem(tr("Computer") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnUser,      new QTableWidgetItem(tr("User") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnOs,        new QTableWidgetItem(tr("OS") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnProcess,   new QTableWidgetItem(tr("Process") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnProcessId, new QTableWidgetItem(tr("PID") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnThreadId,  new QTableWidgetItem(tr("TID") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnTags,      new QTableWidgetItem(tr("Tags") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnLast,      new QTableWidgetItem(tr("Last") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnSleep,     new QTableWidgetItem(tr("Sleep") ) );
 
     tableWidget->setItemDelegate(new PaddingDelegate(tableWidget));
     this->UpdateColumnsVisible();
@@ -298,16 +298,22 @@ void SessionsTableWidget::UpdateColumnsWidth() const
     tableWidget->horizontalHeader()->setSectionResizeMode(ColumnTags, QHeaderView::Stretch);
 
     int wDomain   = tableWidget->columnWidth(ColumnDomain);
-    int wComputer = tableWidget->columnWidth(ColumnDomain);
-    int wUser     = tableWidget->columnWidth(ColumnDomain);
+    int wComputer = tableWidget->columnWidth(ColumnComputer);
+    int wUser     = tableWidget->columnWidth(ColumnUser);
+    int wOs       = tableWidget->columnWidth(ColumnOs);
+    int wProcess  = tableWidget->columnWidth(ColumnProcess);
 
     tableWidget->horizontalHeader()->setSectionResizeMode(ColumnDomain,   QHeaderView::Interactive);
     tableWidget->horizontalHeader()->setSectionResizeMode(ColumnComputer, QHeaderView::Interactive);
     tableWidget->horizontalHeader()->setSectionResizeMode(ColumnUser,     QHeaderView::Interactive);
+    tableWidget->horizontalHeader()->setSectionResizeMode(ColumnOs,       QHeaderView::Interactive);
+    tableWidget->horizontalHeader()->setSectionResizeMode(ColumnProcess,  QHeaderView::Interactive);
 
-    tableWidget->setColumnWidth(ColumnDomain, wDomain);
-    tableWidget->setColumnWidth(ColumnDomain, wComputer);
-    tableWidget->setColumnWidth(ColumnDomain, wUser);
+    tableWidget->setColumnWidth(ColumnDomain,   wDomain);
+    tableWidget->setColumnWidth(ColumnComputer, wComputer);
+    tableWidget->setColumnWidth(ColumnUser,     wUser);
+    tableWidget->setColumnWidth(ColumnOs,       wOs);
+    tableWidget->setColumnWidth(ColumnProcess,  wProcess);
 }
 
 void SessionsTableWidget::ClearTableContent() const
@@ -455,7 +461,7 @@ void SessionsTableWidget::actionExecuteCommand()
         return;
 
     bool ok = false;
-    QString cmd = QInputDialog::getText(this,tr("Execute Command"), tr("Command"), QLineEdit::Normal, "", &ok);
+    QString cmd = QInputDialog::getText(this,"Execute Command", "Command", QLineEdit::Normal, "", &ok);
     if (!ok)
         return;
 
@@ -469,7 +475,7 @@ void SessionsTableWidget::actionTasksBrowserOpen() const
 {
     QString agentId = tableWidget->item( tableWidget->currentRow(), ColumnAgentID )->text();
 
-    adaptixWidget->TasksTab->SetAgentFilter(agentId);
+    adaptixWidget->TasksDock->SetAgentFilter(agentId);
     adaptixWidget->SetTasksUI();
 }
 
@@ -530,7 +536,7 @@ void SessionsTableWidget::actionItemColor() const
     if(listId.empty())
         return;
 
-    QColor itemColor = QColorDialog::getColor(Qt::white, nullptr, tr("Select items color"));
+    QColor itemColor = QColorDialog::getColor(Qt::white, nullptr, "Select items color");
     if (itemColor.isValid()) {
         QString itemColorHex = itemColor.name();
         QString message = QString();

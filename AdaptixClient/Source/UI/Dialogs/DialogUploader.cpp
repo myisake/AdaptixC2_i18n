@@ -6,14 +6,15 @@
 
 DialogUploader::DialogUploader(const QUrl &uploadUrl, const QString &otp, const QByteArray &data, QWidget *parent) : QDialog(parent)
 {
-    setWindowTitle("Uploading...");
+    setWindowTitle(tr("Uploading..."));
     resize(400, 150);
+    this->setProperty("Main", "base");
 
     progressBar   = new QProgressBar(this);
     progressBar->setRange(0, 100);
-    statusLabel   = new QLabel("Preparing upload...", this);
-    speedLabel    = new QLabel("Speed: 0 KB/s", this);
-    cancelButton  = new QPushButton("Cancel", this);
+    statusLabel   = new QLabel(tr("Preparing upload..."), this);
+    speedLabel    = new QLabel(tr("Speed: 0 KB/s"), this);
+    cancelButton  = new QPushButton(tr("Cancel"), this);
 
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(statusLabel);
@@ -42,7 +43,7 @@ DialogUploader::DialogUploader(const QUrl &uploadUrl, const QString &otp, const 
     connect(worker, &UploaderWorker::finished, this, [this]() {
         if (!worker->IsError()) {
             progressBar->setValue(100);
-            statusLabel->setText("Upload completed.");
+            statusLabel->setText(tr("Upload completed."));
             speedLabel->setVisible(false);
             this->accept();
         }
@@ -50,7 +51,7 @@ DialogUploader::DialogUploader(const QUrl &uploadUrl, const QString &otp, const 
     });
 
     connect(worker, &UploaderWorker::failed, this, [this](const QString &msg) {
-        QMessageBox::critical(this, "Upload Error", msg);
+        QMessageBox::critical(this, tr("Upload Error"), msg);
         this->reject();
     });
 

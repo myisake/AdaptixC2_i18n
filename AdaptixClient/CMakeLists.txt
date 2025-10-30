@@ -1,9 +1,12 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.28) # 3.15
 project(AdaptixClient LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+add_subdirectory(Libs/kddockwidgets)
 
 if(UNIX)
     find_package( OpenSSL REQUIRED )
@@ -29,6 +32,10 @@ include_directories(
         Headers
         Libs
 )
+
+### KDDOCKWIDGETS
+
+set(KDDOCKWIDGETS_RESOURCES Libs/kddockwidgets/kddockwidgets_resources.qrc)
 
 ### KONSOLE
 
@@ -143,13 +150,19 @@ SET( HEADERS
         Headers/UI/Widgets/CredentialsWidget.h
         Headers/UI/Dialogs/DialogCredential.h
         Headers/UI/Widgets/AxConsoleWidget.h
-        Headers/UI/Widgets/TargetsWidget.h
         Headers/UI/Dialogs/DialogTarget.h
+        Headers/UI/Dialogs/DialogSaveTask.h
+        Headers/UI/Widgets/ChatWidget.h
+        Headers/UI/Widgets/AbstractDock.h
+        Headers/Utils/NonBlockingDialogs.h
+        Headers/Utils/FontManager.h
 )
 
 add_executable(AdaptixClient
         ${KONSOLE_SOURCES}
         ${KONSOLE_HEADERS}
+
+        ${KDDOCKWIDGETS_RESOURCES}
 
         ${HEADERS}
 
@@ -220,9 +233,20 @@ add_executable(AdaptixClient
         Source/UI/Widgets/AxConsoleWidget.cpp
         Source/UI/Widgets/TargetsWidget.cpp
         Source/UI/Dialogs/DialogTarget.cpp
+        Source/UI/Dialogs/DialogSaveTask.cpp
+        Source/UI/Widgets/ChatWidget.cpp
+        Source/Utils/NonBlockingDialogs.cpp
+        Source/Utils/FontManager.cpp
+        Headers/UI/Widgets/TasksWidget.h
+        Headers/UI/Widgets/TargetsWidget.h
 )
 
-target_compile_definitions(AdaptixClient PRIVATE QT_DEPRECATED_WARNINGS )
+target_compile_definitions(
+        AdaptixClient
+        PUBLIC KDDW_FRONTEND_QTWIDGETS KDDW_FRONTEND_QT BUILDING_DOCKS_LIBRARY
+        PRIVATE QT_DEPRECATED_WARNINGS QT_NO_KEYWORDS
+#        QT_NO_SIGNALS_SLOTS_KEYWORDS
+)
 
 if(UNIX)
     target_link_libraries( AdaptixClient
@@ -235,6 +259,8 @@ if(UNIX)
             Qt6::Sql
             Qt6::Qml
             OpenSSL::Crypto
+
+            kddockwidgets
 
             pthread dl
     )
@@ -250,6 +276,8 @@ elseif(APPLE)
             Qt6::Qml
             OpenSSL::Crypto
 
+            kddockwidgets
+
             pthread dl
     )
 else()
@@ -263,9 +291,12 @@ else()
             Qt6::Sql
             Qt6::Qml
 
-            wsock32 ws2_32 crypt32 iphlpapi netapi32 version winmm userenv
+            kddockwidgets
+
+            wsock32 ws2_32 crypt32 iphlpapi netapi32 version winmm userenv dwmapi
     )
 endif()
+
 # 国际化多语言支持
 set(TS_FILES
     translations/adaptix_zh_CN.ts

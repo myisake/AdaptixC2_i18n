@@ -1,11 +1,11 @@
 #include <UI/Dialogs/DialogSyncPacket.h>
 
-DialogSyncPacket::DialogSyncPacket()
+DialogSyncPacket::DialogSyncPacket(QObject *parent) : QObject(parent)
 {
     splashScreen = new CustomSplashScreen();
     splashScreen->setPixmap(QPixmap(":/SyncLogo"));
 
-    logNameLabel = new QLabel("Log synchronization");
+    logNameLabel = new QLabel(tr("Log synchronization"));
 
     logProgressLabel = new QLabel();
     logProgressLabel->setAlignment(Qt::AlignCenter);
@@ -25,7 +25,7 @@ void DialogSyncPacket::init(int count)
 {
     receivedLogs = 0;
     totalLogs = count;
-    QString progress = QString("Received: %1 / %2").arg(receivedLogs).arg(totalLogs);
+    QString progress = QString(tr("Received: %1 / %2")).arg(receivedLogs).arg(totalLogs);
     logProgressLabel->setText(progress);
     logProgressLabel->setAlignment(Qt::AlignCenter);
 
@@ -35,7 +35,7 @@ void DialogSyncPacket::init(int count)
 
 void DialogSyncPacket::upgrade() const
 {
-    QString progress = QString("Received: %1 / %2").arg(receivedLogs).arg(totalLogs);
+    QString progress = QString(tr("Received: %1 / %2")).arg(receivedLogs).arg(totalLogs);
     logProgressLabel->setText(progress);
 
     if (totalLogs > 0) {
@@ -49,6 +49,6 @@ void DialogSyncPacket::upgrade() const
 
 void DialogSyncPacket::finish() const
 {
-    logProgressLabel->setText("Synchronization complete!");
+    logProgressLabel->setText(tr("Synchronization complete!"));
     splashScreen->close();
 }

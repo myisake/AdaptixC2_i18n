@@ -7,11 +7,13 @@
 #include <Client/AxScript/AxElementWrappers.h>
 #include <Client/AxScript/AxScriptManager.h>
 
-ListenersWidget::ListenersWidget(AdaptixWidget* w) : adaptixWidget(w)
+ListenersWidget::ListenersWidget(AdaptixWidget* w) : DockTab(tr("Listeners"), w->GetProfile()->GetProject(), ":/icons/listeners"), adaptixWidget(w)
 {
     this->createUI();
 
     connect(tableWidget, &QTableWidget::customContextMenuRequested, this, &ListenersWidget::handleListenersMenu);
+
+    this->dockWidget->setWidget(this);
 }
 
 ListenersWidget::~ListenersWidget() = default;
@@ -35,14 +37,14 @@ void ListenersWidget::createUI()
     tableWidget->horizontalHeader()->setHighlightSections( false );
     tableWidget->verticalHeader()->setVisible( false );
 
-    tableWidget->setHorizontalHeaderItem( ColumnName,     new QTableWidgetItem(tr("Name") ) );
-    tableWidget->setHorizontalHeaderItem( ColumnRegName,  new QTableWidgetItem(tr("Reg name") ) );
-    tableWidget->setHorizontalHeaderItem( ColumnType,     new QTableWidgetItem(tr("Type") ) );
-    tableWidget->setHorizontalHeaderItem( ColumnProtocol, new QTableWidgetItem(tr("Protocol") ) );
-    tableWidget->setHorizontalHeaderItem( ColumnBindHost, new QTableWidgetItem(tr("Bind Host") ) );
-    tableWidget->setHorizontalHeaderItem( ColumnBindPort, new QTableWidgetItem(tr("Bind Port") ) );
-    tableWidget->setHorizontalHeaderItem( ColumnHosts,    new QTableWidgetItem(tr("C2 Hosts (agent)") ) );
-    tableWidget->setHorizontalHeaderItem( ColumnStatus,   new QTableWidgetItem(tr("Status") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnName,     new QTableWidgetItem( tr("Name") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnRegName,  new QTableWidgetItem( tr("Reg name") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnType,     new QTableWidgetItem( tr("Type") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnProtocol, new QTableWidgetItem( tr("Protocol") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnBindHost, new QTableWidgetItem( tr("Bind Host") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnBindPort, new QTableWidgetItem( tr("Bind Port") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnHosts,    new QTableWidgetItem( tr("C2 Hosts (agent)") ) );
+    tableWidget->setHorizontalHeaderItem( ColumnStatus,   new QTableWidgetItem( tr("Status") ) );
 
     mainGridLayout = new QGridLayout( this );
     mainGridLayout->setContentsMargins(0, 0,  0, 0);
@@ -352,11 +354,18 @@ void ListenersWidget::onRemoveListener() const
     auto listenerName    = tableWidget->item( tableWidget->currentRow(), ColumnName )->text();
     auto listenerRegName = tableWidget->item( tableWidget->currentRow(), ColumnRegName )->text();
 
+    QMessageBox::StandardButton reply = QMessageBox::question(nullptr, tr("Delete Confirmation"),
+                                      QString(tr("Are you sure you want to remove the '%1' listener?")).arg(listenerName),
+                                      QMessageBox::Yes | QMessageBox::No,
+                                      QMessageBox::No);
+    if (reply != QMessageBox::Yes)
+        return;
+
     QString message = QString();
     bool ok = false;
     bool result = HttpReqListenerStop( listenerName, listenerRegName, *(adaptixWidget->GetProfile()), &message, &ok );
     if( !result ){
-        MessageError("Response timeout");
+        MessageError(tr("Response timeout"));
         return;
     }
 

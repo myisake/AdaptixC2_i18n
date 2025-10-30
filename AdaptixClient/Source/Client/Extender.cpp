@@ -21,7 +21,7 @@ void Extender::LoadFromDB()
         QFile file(ext.FilePath);
         if (!file.open(QIODevice::ReadOnly)) {
             ext.Enabled = false;
-            ext.Message = "Cannot open file.";
+            ext.Message = tr("Cannot open file.");
         }
         ext.Code = QTextStream(&file).readAll();
         file.close();
@@ -40,7 +40,7 @@ void Extender::LoadFromFile(const QString &path, const bool enabled)
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly)) {
         extensionFile.Enabled = false;
-        extensionFile.Message = "Cannot open file.";
+        extensionFile.Message = tr("Cannot open file.");
         goto END;
     }
     extensionFile.Code = QTextStream(&file).readAll();

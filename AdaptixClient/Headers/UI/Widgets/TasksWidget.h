@@ -3,13 +3,13 @@
 
 #include <main.h>
 #include <Utils/CustomElements.h>
+#include <UI/Widgets/AbstractDock.h>
 
 class Task;
 class AdaptixWidget;
 
 class TaskOutputWidget : public QWidget
 {
-    Q_OBJECT
     QGridLayout* mainGridLayout = nullptr;
     QLabel*      label          = nullptr;
     QLineEdit*   inputMessage   = nullptr;
@@ -30,6 +30,10 @@ class TasksWidget : public QWidget
 {
     Q_OBJECT
     AdaptixWidget* adaptixWidget  = nullptr;
+
+    KDDockWidgets::QtWidgets::DockWidget* dockWidgetTable;
+    KDDockWidgets::QtWidgets::DockWidget* dockWidgetOutput;
+
     QGridLayout*   mainGridLayout = nullptr;
     QTableWidget*  tableWidget    = nullptr;
     QShortcut*     shortcutSearch = nullptr;
@@ -65,6 +69,9 @@ public:
     explicit TasksWidget( AdaptixWidget* w );
     ~TasksWidget() override;
 
+    KDDockWidgets::QtWidgets::DockWidget* dockTasks();
+    KDDockWidgets::QtWidgets::DockWidget* dockTasksOutput();
+
     void AddTaskItem(Task* newTask) const;
     void RemoveTaskItem(const QString &taskId) const;
     void RemoveAgentTasksItem(const QString &agentId) const;
@@ -75,7 +82,7 @@ public:
     void ClearTableContent() const;
     void Clear() const;
 
-public slots:
+public Q_SLOTS:
     void toggleSearchPanel();
     void handleTasksMenu( const QPoint &pos );
     void onTableItemSelection(const QModelIndex &current, const QModelIndex &previous) const;

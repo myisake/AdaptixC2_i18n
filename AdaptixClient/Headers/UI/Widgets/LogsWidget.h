@@ -2,10 +2,14 @@
 #define ADAPTIXCLIENT_LOGSWIDGET_H
 
 #include <main.h>
+#include <UI/Widgets/AbstractDock.h>
 #include <Utils/CustomElements.h>
 
-class LogsWidget : public QWidget
+class AdaptixWidget;
+
+class LogsWidget : public DockTab
 {
+    Q_OBJECT
     QGridLayout*     mainGridLayout      = nullptr;
     QGridLayout*     logsGridLayout      = nullptr;
     QGridLayout*     todoGridLayout      = nullptr;
@@ -35,13 +39,13 @@ class LogsWidget : public QWidget
     void highlightCurrent() const;
 
 public:
-    explicit LogsWidget();
+    explicit LogsWidget(AdaptixWidget* w);
     ~LogsWidget() override;
 
      void AddLogs( int type, qint64 time, const QString &Message) const;
      void Clear() const;
 
-public slots:
+public Q_SLOTS:
     void toggleSearchPanel();
     void handleSearch();
     void handleSearchBackward();

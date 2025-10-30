@@ -3,14 +3,14 @@
 let exit_action = menu.create_action("Exit", function(agents_id) { agents_id.forEach(id => ax.execute_command(id, "exit")) });
 menu.add_session_agent(exit_action, ["gopher"])
 
-let file_browser_action     = menu.create_action("文件浏览器",    function(agents_id) { agents_id.forEach(id => ax.open_browser_files(id)) });
-let process_browser_action  = menu.create_action("进程浏览器", function(agents_id) { agents_id.forEach(id => ax.open_browser_process(id)) });
-let terminal_browser_action = menu.create_action("远程终端", function(agents_id) { agents_id.forEach(id => ax.open_remote_terminal(id)) });
+let file_browser_action     = menu.create_action("File Browser",    function(agents_id) { agents_id.forEach(id => ax.open_browser_files(id)) });
+let process_browser_action  = menu.create_action("Process Browser", function(agents_id) { agents_id.forEach(id => ax.open_browser_process(id)) });
+let terminal_browser_action = menu.create_action("Remote Terminal", function(agents_id) { agents_id.forEach(id => ax.open_remote_terminal(id)) });
 menu.add_session_browser(file_browser_action, ["gopher"])
 menu.add_session_browser(process_browser_action, ["gopher"])
 menu.add_session_browser(terminal_browser_action, ["gopher"])
 
-let tunnel_access_action = menu.create_action("创建隧道", function(agents_id) { ax.open_access_tunnel(agents_id[0], true, true, false, false) });
+let tunnel_access_action = menu.create_action("Create Tunnel", function(agents_id) { ax.open_access_tunnel(agents_id[0], true, true, false, false) });
 menu.add_session_access(tunnel_access_action, ["gopher"]);
 
 
@@ -39,13 +39,13 @@ let execute_action = menu.create_action("Execute", function(files_list) {
         ax.execute_command(file.agent_id, command);
     }
 });
-let download_action = menu.create_action("下载", function(files_list) { files_list.forEach( file => ax.execute_command(file.agent_id, "download " + file.path + file.name) ) });
-let remove_action = menu.create_action("删除", function(files_list) { files_list.forEach( file => ax.execute_command(file.agent_id, "rm " + file.path + file.name) ) });
+let download_action = menu.create_action("Download", function(files_list) { files_list.forEach( file => ax.execute_command(file.agent_id, "download " + file.path + file.name) ) });
+let remove_action = menu.create_action("Remove", function(files_list) { files_list.forEach( file => ax.execute_command(file.agent_id, "rm " + file.path + file.name) ) });
 menu.add_filebrowser(download_action, ["gopher"])
 menu.add_filebrowser(remove_action, ["gopher"])
 
 
-let job_stop_action = menu.create_action("停止工作", function(tasks_list) {
+let job_stop_action = menu.create_action("Stop job", function(tasks_list) {
     tasks_list.forEach((task) => {
         if(task.type == "JOB" && task.state == "Running") {
             ax.execute_command(task.agent_id, "job kill " + task.task_id);
@@ -81,103 +81,103 @@ event.on_processbrowser_list(event_process_action, ["gopher"]);
 
 function RegisterCommands(listenerType)
 {
-    let cmd_cat_win = ax.create_command("cat", "读取文件", "cat C:\\file.exe", "Task: read file");
+    let cmd_cat_win = ax.create_command("cat", "Read a file", "cat C:\\file.exe", "Task: read file");
     cmd_cat_win.addArgString("path", true);
-    let cmd_cat_unix = ax.create_command("cat", "读取文件", "cat /etc/passwd", "Task: read file");
+    let cmd_cat_unix = ax.create_command("cat", "Read a file", "cat /etc/passwd", "Task: read file");
     cmd_cat_unix.addArgString("path", true);
 
-    let cmd_cp = ax.create_command("cp", "复制文件或目录", "cp src.txt dst.txt", "Task: copy file or directory");
+    let cmd_cp = ax.create_command("cp", "Copy file or directory", "cp src.txt dst.txt", "Task: copy file or directory");
     cmd_cp.addArgString("src", true);
     cmd_cp.addArgString("dst", true);
 
-    let cmd_cd_win = ax.create_command("cd", "更改当前工作目录", "cd C:\\Windows", "Task: change working directory");
+    let cmd_cd_win = ax.create_command("cd", "Change current working directory", "cd C:\\Windows", "Task: change working directory");
     cmd_cd_win.addArgString("path", true);
-    let cmd_cd_unix = ax.create_command("cd", "更改当前工作目录", "cd /home/user", "Task: change working directory");
+    let cmd_cd_unix = ax.create_command("cd", "Change current working directory", "cd /home/user", "Task: change working directory");
     cmd_cd_unix.addArgString("path", true);
 
-    let cmd_download_win = ax.create_command("download", "下载文件", "download C:\\Temp\\file.txt", "Task: download file");
+    let cmd_download_win = ax.create_command("download", "Download a file", "download C:\\Temp\\file.txt", "Task: download file");
     cmd_download_win.addArgString("path", true);
-    let cmd_download_unix = ax.create_command("download", "下载文件", "download /tmp/file", "Task: download file");
+    let cmd_download_unix = ax.create_command("download", "Download a file", "download /tmp/file", "Task: download file");
     cmd_download_unix.addArgString("path", true);
 
-    let _cmd_execute_bof = ax.create_command("bof", "执行信标对象文件", "execute bof /home/user/whoami.o", "Task: execute BOF");
+    let _cmd_execute_bof = ax.create_command("bof", "Execute Beacon Object File", "execute bof /home/user/whoami.o", "Task: execute BOF");
     _cmd_execute_bof.addArgFile("bof", true, "Path to object file");
     _cmd_execute_bof.addArgString("param_data", false);
-    let cmd_execute = ax.create_command("execute", "在当前进程的内存中执行 [bof]");
+    let cmd_execute = ax.create_command("execute", "Execute [bof] in the current process's memory");
     cmd_execute.addSubCommands([_cmd_execute_bof])
 
-    let cmd_exit = ax.create_command("exit", "终止客户端", "exit", "Task: kill agent");
+    let cmd_exit = ax.create_command("exit", "Kill agent", "exit", "Task: kill agent");
 
-    let _cmd_job_list = ax.create_command("list", "工作列表", "job list", "Task: show jobs");
-    let _cmd_job_kill = ax.create_command("kill", "终止指定任务", "job kill 1a2b3c4d", "Task: kill job");
+    let _cmd_job_list = ax.create_command("list", "List of jobs", "job list", "Task: show jobs");
+    let _cmd_job_kill = ax.create_command("kill", "Kill a specified job", "job kill 1a2b3c4d", "Task: kill job");
     _cmd_job_kill.addArgString("task_id", true);
-    let cmd_job = ax.create_command("job", "作业状态");
+    let cmd_job = ax.create_command("job", "Long-running tasks manager");
     cmd_job.addSubCommands([_cmd_job_list, _cmd_job_kill]);
 
-    let cmd_kill = ax.create_command("kill", "杀死指定PID的进程", "kill 7865", "Task: kill process");
+    let cmd_kill = ax.create_command("kill", "Kill a process with a given PID", "kill 7865", "Task: kill process");
     cmd_kill.addArgInt("pid", true);
 
-    let cmd_ls_win = ax.create_command("ls", "列出文件夹中的文件", "ls C:\\Windows", "Task: list of files in a folder");
+    let cmd_ls_win = ax.create_command("ls", "Lists files in a folder", "ls C:\\Windows", "Task: list of files in a folder");
     cmd_ls_win.addArgString("directory", "", ".");
-    let cmd_ls_unix = ax.create_command("ls", "列出文件夹中的文件", "ls /home/", "Task: list of files in a folder");
+    let cmd_ls_unix = ax.create_command("ls", "Lists files in a folder", "ls /home/", "Task: list of files in a folder");
     cmd_ls_unix.addArgString("directory", "", ".");
 
-    let cmd_mv = ax.create_command("mv", "移动文件或目录", "mv src.txt dst.txt", "Task: move file or directory");
+    let cmd_mv = ax.create_command("mv", "Move file or directory", "mv src.txt dst.txt", "Task: move file or directory");
     cmd_mv.addArgString("src", true);
     cmd_mv.addArgString("dst", true);
 
-    let cmd_mkdir_win = ax.create_command("mkdir", "创建目录", "mkdir C:\\Temp", "Task: make directory");
+    let cmd_mkdir_win = ax.create_command("mkdir", "Make a directory", "mkdir C:\\Temp", "Task: make directory");
     cmd_mkdir_win.addArgString("path", true);
-    let cmd_mkdir_unix = ax.create_command("mkdir", "创建目录", "mkdir /tmp/ex", "Task: make directory");
+    let cmd_mkdir_unix = ax.create_command("mkdir", "Make a directory", "mkdir /tmp/ex", "Task: make directory");
     cmd_mkdir_unix.addArgString("path", true);
 
-    let cmd_ps = ax.create_command("ps", "显示进程列表", "ps", "Task: show process list");
+    let cmd_ps = ax.create_command("ps", "Show process list", "ps", "Task: show process list");
 
-    let cmd_pwd = ax.create_command("pwd", "打印当前工作目录", "pwd", "Task: print working directory");
+    let cmd_pwd = ax.create_command("pwd", "Print current working directory", "pwd", "Task: print working directory");
 
-    let cmd_rev2self = ax.create_command("rev2self", "恢复您的原始访问令牌", "rev2self", "Task: revert token");
+    let cmd_rev2self = ax.create_command("rev2self", "Revert to your original access token", "rev2self", "Task: revert token");
 
-    let cmd_rm_win = ax.create_command("rm", "删除文件或文件夹", "rm C:\\Temp\\file.txt", "Task: remove file or directory");
+    let cmd_rm_win = ax.create_command("rm", "Remove a file or folder", "rm C:\\Temp\\file.txt", "Task: remove file or directory");
     cmd_rm_win.addArgString("path", true);
-    let cmd_rm_unix = ax.create_command("rm", "删除文件或文件夹", "rm /tmp/file", "Task: remove file or directory");
+    let cmd_rm_unix = ax.create_command("rm", "Remove a file or folder", "rm /tmp/file", "Task: remove file or directory");
     cmd_rm_unix.addArgString("path", true);
 
-    let cmd_run_win = ax.create_command("run", "执行命令或脚本", "run C:\\Windows\\cmd.exe /c \\\"whoami /all\\\"", "Task: command run");
+    let cmd_run_win = ax.create_command("run", "Execute long command or scripts", "run C:\\Windows\\cmd.exe /c \\\"whoami /all\\\"", "Task: command run");
     cmd_run_win.addArgString("program", true);
     cmd_run_win.addArgString("args", false);
-    let cmd_run_unix = ax.create_command("run", "执行命令或脚本", "run /tmp/script.sh", "Task: command run");
+    let cmd_run_unix = ax.create_command("run", "Execute long command or scripts", "run /tmp/script.sh", "Task: command run");
     cmd_run_unix.addArgString("program", true);
     cmd_run_unix.addArgString("args", false);
 
-    let cmd_screenshot = ax.create_command("screenshot", "截取一张屏幕截图", "screenshot", "Task: screenshot");
+    let cmd_screenshot = ax.create_command("screenshot", "Take a single screenshot", "screenshot", "Task: screenshot");
 
-    let _cmd_socks_start = ax.create_command("start", "启动一个SOCKS(4a/5)代理服务器并在指定端口上监听", "socks start 1080 -a user pass");
+    let _cmd_socks_start = ax.create_command("start", "Start a SOCKS5 proxy server and listen on a specified port", "socks start 1080 -a user pass");
     _cmd_socks_start.addArgFlagString("-h", "address", "Listening interface address", "0.0.0.0");
     _cmd_socks_start.addArgInt("port", true, "Listen port");
     _cmd_socks_start.addArgBool("-a", "Enable User/Password authentication for SOCKS5");
     _cmd_socks_start.addArgString("username", false, "Username for SOCKS5 proxy");
     _cmd_socks_start.addArgString("password", false, "Password for SOCKS5 proxy");
-    let _cmd_socks_stop = ax.create_command("stop", "停止SOCKS代理服务器", "socks stop 1080");
+    let _cmd_socks_stop = ax.create_command("stop", "Stop a SOCKS proxy server", "socks stop 1080");
     _cmd_socks_stop.addArgInt("port", true);
-    let cmd_socks = ax.create_command("socks", "管理SOCKS隧道");
+    let cmd_socks = ax.create_command("socks", "Managing socks tunnels");
     cmd_socks.addSubCommands([_cmd_socks_start, _cmd_socks_stop]);
 
-    let cmd_shell_win = ax.create_command("shell", "通过cmd.exe执行命令", "shell whoami /all", "Task: command execute");
+    let cmd_shell_win = ax.create_command("shell", "Execute command via cmd.exe", "shell whoami /all", "Task: command execute");
     cmd_shell_win.addArgString("cmd", true);
-    let cmd_shell_unix = ax.create_command("shell", "通过 /bin/sh 执行命令", "shell id", "Task: command execute");
+    let cmd_shell_unix = ax.create_command("shell", "Execute command via /bin/sh", "shell id", "Task: command execute");
     cmd_shell_unix.addArgString("cmd", true);
 
-    let cmd_upload_win = ax.create_command("upload", "上传文件", "upload /tmp/file.txt C:\\Temp\\file.txt", "Task: upload file");
+    let cmd_upload_win = ax.create_command("upload", "Upload a file", "upload /tmp/file.txt C:\\Temp\\file.txt", "Task: upload file");
     cmd_upload_win.addArgFile("local_file", true);
     cmd_upload_win.addArgString("remote_path", false);
-    let cmd_upload_unix = ax.create_command("upload", "上传文件", "upload /tmp/file.txt /root/file.txt", "Task: upload file");
+    let cmd_upload_unix = ax.create_command("upload", "Upload a file", "upload /tmp/file.txt /root/file.txt", "Task: upload file");
     cmd_upload_unix.addArgFile("local_file", true);
     cmd_upload_unix.addArgString("remote_path", false);
 
-    let cmd_zip_win = ax.create_command("zip", "将文件或目录压缩为ZIP存档", "zip C:\\backup C:\\Temp\\qwe.zip", "Task: Zip a file or directory");
+    let cmd_zip_win = ax.create_command("zip", "Archive (zip) a file or directory", "zip C:\\backup C:\\Temp\\qwe.zip", "Task: Zip a file or directory");
     cmd_zip_win.addArgString("path", true);
     cmd_zip_win.addArgString("zip_path", true);
-    let cmd_zip_unix = ax.create_command("zip", "将文件或目录压缩为ZIP存档", "zip /home/test /tmp/qwe.zip", "Task: Zip a file or directory");
+    let cmd_zip_unix = ax.create_command("zip", "Archive (zip) a file or directory", "zip /home/test /tmp/qwe.zip", "Task: Zip a file or directory");
     cmd_zip_unix.addArgString("path", true);
     cmd_zip_unix.addArgString("zip_path", true);
 
@@ -197,23 +197,23 @@ function GenerateUI(listenerType)
     let comboOS = form.create_combo()
     comboOS.addItems(["windows", "linux", "macos"]);
 
-    let labelArch = form.create_label("架构:");
+    let labelArch = form.create_label("Arch:");
     let comboArch = form.create_combo()
     comboArch.addItems(["amd64", "arm64"]);
 
-    let labelFormat = form.create_label("格式:");
+    let labelFormat = form.create_label("Format:");
     let comboFormat = form.create_combo()
     comboFormat.addItems(["Binary EXE"]);
 
-    let checkWin7 = form.create_check("Windows 7 支持");
+    let checkWin7 = form.create_check("Windows 7 support");
 
     let hline = form.create_hline()
 
-    let labelReconnTimeout = form.create_label("重连超时:");
+    let labelReconnTimeout = form.create_label("Reconnect timeout:");
     let textReconnTimeout = form.create_textline("10");
     textReconnTimeout.setPlaceholder("seconds")
 
-    let labelReconnCount = form.create_label("重连次数:");
+    let labelReconnCount = form.create_label("Reconnect count:");
     let spinReconnCount = form.create_spin();
     spinReconnCount.setRange(0, 1000000000);
     spinReconnCount.setValue(1000000000);

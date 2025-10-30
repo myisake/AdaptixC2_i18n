@@ -128,7 +128,7 @@ function RegisterCommands(listenerType)
     let _cmd_execute_bof = ax.create_command("bof", "执行信标对象文件", "execute bof /home/user/whoami.o", "Task: execute BOF");
     _cmd_execute_bof.addArgFile("bof", true, "Path to object file");
     _cmd_execute_bof.addArgString("param_data", false);
-    let cmd_execute = ax.create_command("execute", "在当前进程的内存中执行[bof]");
+    let cmd_execute = ax.create_command("execute", "在当前进程的内存中执行 [bof]");
     cmd_execute.addSubCommands([_cmd_execute_bof])
 
     let _cmd_exfil_cancel = ax.create_command("cancel", "取消下载", "exfil cancel 1a2b3c4d");

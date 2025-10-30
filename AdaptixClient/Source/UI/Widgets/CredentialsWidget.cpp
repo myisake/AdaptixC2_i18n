@@ -5,8 +5,9 @@
 #include <Client/AuthProfile.h>
 #include <Client/AxScript/AxScriptManager.h>
 #include <Utils/CustomElements.h>
+#include <Utils/NonBlockingDialogs.h>
 
-CredentialsWidget::CredentialsWidget(AdaptixWidget* w) : adaptixWidget(w)
+CredentialsWidget::CredentialsWidget(AdaptixWidget* w) : DockTab(tr("Credentials"), w->GetProfile()->GetProject(), ":/icons/key"), adaptixWidget(w)
 {
     this->createUI();
 
@@ -19,6 +20,8 @@ CredentialsWidget::CredentialsWidget(AdaptixWidget* w) : adaptixWidget(w)
     shortcutSearch = new QShortcut(QKeySequence("Ctrl+F"), tableWidget);
     shortcutSearch->setContext(Qt::WidgetShortcut);
     connect(shortcutSearch, &QShortcut::activated, this, &CredentialsWidget::toggleSearchPanel);
+
+    this->dockWidget->setWidget(this);
 }
 
 CredentialsWidget::~CredentialsWidget() = default;
@@ -31,7 +34,7 @@ void CredentialsWidget::createUI()
     searchWidget->setVisible(false);
 
     inputFilter = new QLineEdit(searchWidget);
-    inputFilter->setPlaceholderText("filter");
+    inputFilter->setPlaceholderText(tr("filter"));
     inputFilter->setMaximumWidth(300);
 
     hideButton = new ClickableLabel("X");
@@ -60,7 +63,7 @@ void CredentialsWidget::createUI()
     tableWidget->horizontalHeader()->setHighlightSections( false );
     tableWidget->verticalHeader()->setVisible( false );
 
-    tableWidget->setHorizontalHeaderItem(ColumnId,       new QTableWidgetItem("CredId"));
+    tableWidget->setHorizontalHeaderItem(ColumnId,       new QTableWidgetItem(tr("CredId")));
     tableWidget->setHorizontalHeaderItem(ColumnUsername, new QTableWidgetItem(tr("Username")));
     tableWidget->setHorizontalHeaderItem(ColumnPassword, new QTableWidgetItem(tr("Password")));
     tableWidget->setHorizontalHeaderItem(ColumnRealm,    new QTableWidgetItem(tr("Realm")));
@@ -163,14 +166,18 @@ void CredentialsWidget::addTableItem(const CredentialData &newCredentials) const
     tableWidget->setItem( tableWidget->rowCount() - 1, ColumnHost,     item_Host );
     tableWidget->setSortingEnabled( isSortingEnabled );
 
+    tableWidget->verticalHeader()->setSectionResizeMode(tableWidget->rowCount() - 1, QHeaderView::ResizeToContents);
+
     tableWidget->horizontalHeader()->setSectionResizeMode( ColumnUsername, QHeaderView::ResizeToContents );
-    tableWidget->horizontalHeader()->setSectionResizeMode( ColumnPassword, QHeaderView::ResizeToContents );
+    // tableWidget->horizontalHeader()->setSectionResizeMode( ColumnPassword, QHeaderView::ResizeToContents );
     tableWidget->horizontalHeader()->setSectionResizeMode( ColumnRealm,    QHeaderView::ResizeToContents );
+    tableWidget->horizontalHeader()->setSectionResizeMode( ColumnType,     QHeaderView::ResizeToContents );
+    tableWidget->horizontalHeader()->setSectionResizeMode( ColumnTag,      QHeaderView::Stretch );
     tableWidget->horizontalHeader()->setSectionResizeMode( ColumnDate,     QHeaderView::ResizeToContents );
+    tableWidget->horizontalHeader()->setSectionResizeMode( ColumnStorage,  QHeaderView::ResizeToContents );
     tableWidget->horizontalHeader()->setSectionResizeMode( ColumnAgent,    QHeaderView::ResizeToContents );
     tableWidget->horizontalHeader()->setSectionResizeMode( ColumnHost,     QHeaderView::ResizeToContents );
 
-    tableWidget->verticalHeader()->setSectionResizeMode(tableWidget->rowCount() - 1, QHeaderView::ResizeToContents);
 }
 
 /// Main
@@ -319,7 +326,7 @@ void CredentialsWidget::CredentialsAdd(QList<CredentialData> credsList)
     bool ok = false;
     bool result = HttpReqCredentialsCreate(jsonData, *(adaptixWidget->GetProfile()), &message, &ok);
     if( !result ) {
-        MessageError("Server is not responding");
+        MessageError(tr("Server is not responding"));
         return;
     }
     if (!ok) MessageError(message);
@@ -448,7 +455,7 @@ void CredentialsWidget::onEditCreds() const
     bool ok = false;
     bool result = HttpReqCredentialsEdit(jsonData, *(adaptixWidget->GetProfile()), &message, &ok);
     if( !result ) {
-        MessageError("Server is not responding");
+        MessageError(tr("Server is not responding"));
         return;
     }
     if (!ok) MessageError(message);
@@ -478,8 +485,8 @@ void CredentialsWidget::onExportCreds() const
         return;
 
     QInputDialog dialog;
-    dialog.setWindowTitle("Format for saving");
-    dialog.setLabelText("Format:");
+    dialog.setWindowTitle(tr("Format for saving"));
+    dialog.setLabelText(tr("Format:"));
     dialog.setTextValue("%realm%\\%username%:%password%");
     QLineEdit *lineEdit = dialog.findChild<QLineEdit*>();
     if (lineEdit) {
@@ -492,35 +499,37 @@ void CredentialsWidget::onExportCreds() const
 
     QString format = dialog.textValue();
 
-    QString fileName = QFileDialog::getSaveFileName( nullptr, "Save credentials", "creds.txt", "Text Files (*.txt);;All Files (*)" );
-    if ( fileName.isEmpty())
-        return;
+    NonBlockingDialogs::getSaveFileName(const_cast<CredentialsWidget*>(this), tr("Save credentials"), "creds.txt", "Text Files (*.txt);;All Files (*)",
+        [this, format](const QString& fileName) {
+            if (fileName.isEmpty())
+                return;
 
-    QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly)) {
-        MessageError("Failed to open file for writing");
-        return;
-    }
+            QFile file(fileName);
+            if (!file.open(QIODevice::WriteOnly)) {
+                MessageError(tr("Failed to open file for writing"));
+                return;
+            }
 
-    QString content = "";
-    for( int rowIndex = 0 ; rowIndex < tableWidget->rowCount() ; rowIndex++ ) {
-        if ( tableWidget->item(rowIndex, 1)->isSelected() ) {
+            QString content = "";
+            for( int rowIndex = 0 ; rowIndex < tableWidget->rowCount() ; rowIndex++ ) {
+                if ( tableWidget->item(rowIndex, 1)->isSelected() ) {
 
-            QString realm    = tableWidget->item(rowIndex, ColumnRealm)->text();
-            QString username = tableWidget->item(rowIndex, ColumnUsername)->text();
-            QString password = tableWidget->item(rowIndex, ColumnPassword)->text();
+                    QString realm    = tableWidget->item(rowIndex, ColumnRealm)->text();
+                    QString username = tableWidget->item(rowIndex, ColumnUsername)->text();
+                    QString password = tableWidget->item(rowIndex, ColumnPassword)->text();
 
-            QString temp = format;
-            content += temp
-            .replace("%realm%", realm)
-            .replace("%username%", username)
-            .replace("%password%", password)
-            + "\n";
-        }
-    }
+                    QString temp = format;
+                    content += temp
+                    .replace("%realm%", realm)
+                    .replace("%username%", username)
+                    .replace("%password%", password)
+                    + "\n";
+                }
+            }
 
-    file.write(content.trimmed().toUtf8());
-    file.close();
+            file.write(content.trimmed().toUtf8());
+            file.close();
+    });
 }
 
 void CredentialsWidget::onSetTag() const
@@ -542,13 +551,13 @@ void CredentialsWidget::onSetTag() const
     }
 
     bool inputOk;
-    QString newTag = QInputDialog::getText(nullptr, "Set tags", "New tag", QLineEdit::Normal,tag, &inputOk);
+    QString newTag = QInputDialog::getText(nullptr, tr("Set tags"), tr("New tag"), QLineEdit::Normal,tag, &inputOk);
     if ( inputOk ) {
         QString message = QString();
         bool ok = false;
         bool result = HttpReqCredentialsSetTag(listId, newTag, *(adaptixWidget->GetProfile()), &message, &ok);
         if( !result ) {
-            MessageError("Response timeout");
+            MessageError(tr("Response timeout"));
             return;
         }
     }

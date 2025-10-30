@@ -4,9 +4,10 @@
 #include <UI/Widgets/TasksWidget.h>
 #include <UI/Widgets/AdaptixWidget.h>
 #include <Client/Settings.h>
+#include <Client/AuthProfile.h>
 #include <Client/AxScript/AxScriptManager.h>
+#include <Utils/FontManager.h>
 #include <MainAdaptix.h>
-
 
 TaskOutputWidget::TaskOutputWidget() { this->createUI(); }
 
@@ -17,7 +18,7 @@ void TaskOutputWidget::createUI()
     inputMessage = new QLineEdit(this);
     inputMessage->setReadOnly(true);
     inputMessage->setProperty("LineEditStyle", "console");
-    inputMessage->setFont( QFont( "Hack" ));
+    inputMessage->setFont( FontManager::instance().getFont("Hack") );
 
     outputTextEdit = new QTextEdit(this);
     outputTextEdit->setReadOnly(true);
@@ -53,9 +54,20 @@ void TaskOutputWidget::SetConten(const QString &message, const QString &text) co
 TasksWidget::TasksWidget( AdaptixWidget* w )
 {
     this->adaptixWidget = w;
+
     this->createUI();
 
     taskOutputConsole = new TaskOutputWidget();
+
+    dockWidgetTable = new KDDockWidgets::QtWidgets::DockWidget( + "Tasks:Dock-" + w->GetProfile()->GetProject(), KDDockWidgets::DockWidgetOption_None, KDDockWidgets::LayoutSaverOption::None);
+    dockWidgetTable->setTitle(tr("Tasks"));
+    dockWidgetTable->setWidget(this);
+    dockWidgetTable->setIcon(QIcon( ":/icons/job" ), KDDockWidgets::IconPlace::TabBar);
+
+    dockWidgetOutput = new KDDockWidgets::QtWidgets::DockWidget( + "Task Output:Dock-" + w->GetProfile()->GetProject(), KDDockWidgets::DockWidgetOption_None, KDDockWidgets::LayoutSaverOption::None);
+    dockWidgetOutput->setTitle(tr("Task Output"));
+    dockWidgetOutput->setWidget(taskOutputConsole);
+    dockWidgetOutput->setIcon(QIcon( ":/icons/job" ), KDDockWidgets::IconPlace::TabBar);
 
     connect(tableWidget,  &QTableWidget::customContextMenuRequested, this, &TasksWidget::handleTasksMenu);
 
@@ -73,6 +85,10 @@ TasksWidget::TasksWidget( AdaptixWidget* w )
 
 TasksWidget::~TasksWidget() = default;
 
+KDDockWidgets::QtWidgets::DockWidget* TasksWidget::dockTasks() { return this->dockWidgetTable; }
+
+KDDockWidgets::QtWidgets::DockWidget * TasksWidget::dockTasksOutput() { return this->dockWidgetOutput; }
+
 void TasksWidget::createUI()
 {
     auto horizontalSpacer1 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
@@ -82,7 +98,7 @@ void TasksWidget::createUI()
     searchWidget->setVisible(false);
 
     comboAgent = new QComboBox(searchWidget);
-    comboAgent->addItem( "All agents" );
+    comboAgent->addItem( tr("All agents") );
     comboAgent->setCurrentIndex(0);
     comboAgent->setMaximumWidth(200);
     comboAgent->setFixedWidth(200);
@@ -136,6 +152,8 @@ void TasksWidget::createUI()
     tableWidget->setHorizontalHeaderItem( this->ColumnCommandLine, new QTableWidgetItem(tr("Commandline")));
     tableWidget->setHorizontalHeaderItem( this->ColumnResult,      new QTableWidgetItem(tr("Result")));
     tableWidget->setHorizontalHeaderItem( this->ColumnOutput,      new QTableWidgetItem(tr("Output")));
+
+    tableWidget->setItemDelegate(new PaddingDelegate(tableWidget));
 
     this->UpdateColumnsVisible();
 
@@ -338,7 +356,7 @@ void TasksWidget::Clear() const
     taskOutputConsole->SetConten("", "");
 
     comboAgent->clear();
-    comboAgent->addItem( "All agents" );
+    comboAgent->addItem( tr("All agents") );
     comboAgent->setCurrentIndex(0);
     comboStatus->setCurrentIndex(0);
     inputFilter->clear();
@@ -396,10 +414,10 @@ void TasksWidget::handleTasksMenu( const QPoint &pos )
     ctxMenu.addAction(tr("Agent console"), this, &TasksWidget::actionOpenConsole);
     ctxMenu.addSeparator();
 
-    int taskCount = adaptixWidget->ScriptManager->AddMenuTask(&ctxMenu, "Tasks", taskIds);
+    int taskCount = adaptixWidget->ScriptManager->AddMenuTask(&ctxMenu, tr("Tasks"), taskIds);
     int jobCount  = 0;
     if (job_running)
-        jobCount = adaptixWidget->ScriptManager->AddMenuTask(&ctxMenu, "TasksJob", taskIds);
+        jobCount = adaptixWidget->ScriptManager->AddMenuTask(&ctxMenu, tr("TasksJob"), taskIds);
     if (taskCount + jobCount > 0)
         ctxMenu.addSeparator();
 

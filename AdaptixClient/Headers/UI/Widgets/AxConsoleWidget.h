@@ -2,6 +2,7 @@
 #define AXCONSOLEWIDGET_H
 
 #include <main.h>
+#include <UI/Widgets/AbstractDock.h>
 
 class AdaptixWidget;
 class AxScriptManager;
@@ -9,7 +10,7 @@ class TextEditConsole;
 class ClickableLabel;
 class KPH_ConsoleInput;
 
-class AxConsoleWidget : public QWidget
+class AxConsoleWidget : public DockTab
 {
     Q_OBJECT  // 添加这一行
     AdaptixWidget*   adaptixWidget = nullptr;
@@ -50,7 +51,7 @@ public:
     void PrintMessage(const QString& message);
     void PrintError(const QString& message);
 
-public slots:
+public Q_SLOTS:
     void processInput();
     void toggleSearchPanel();
     void handleSearch();

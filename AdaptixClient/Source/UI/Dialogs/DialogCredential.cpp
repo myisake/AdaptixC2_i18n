@@ -13,7 +13,8 @@ DialogCredential::~DialogCredential() = default;
 void DialogCredential::createUI()
 {
     this->resize(500, 300);
-    this->setWindowTitle(tr("Add credentials" ));
+    this->setWindowTitle( tr("Add credentials") );
+    this->setProperty("Main", "base");
 
     usernameLabel = new QLabel(tr("Username:"), this);
     usernameInput = new QLineEdit(this);
@@ -92,7 +93,7 @@ void DialogCredential::StartDialog()
 
 void DialogCredential::SetEditmode(const CredentialData &credentialData)
 {
-    this->setWindowTitle(tr("Edit credentials"));
+    this->setWindowTitle( tr("Edit credentials") );
     this->credsId = credentialData.CredId;
 
     this->usernameInput->setText(credentialData.Username);

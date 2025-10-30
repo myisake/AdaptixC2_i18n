@@ -5,6 +5,7 @@
 
 class DialogTarget : public QDialog
 {
+    Q_OBJECT
     QGridLayout* mainGridLayout = nullptr;
     QLabel*      computerLabel  = nullptr;
     QLineEdit*   computerInput  = nullptr;
@@ -44,7 +45,7 @@ public:
     QString    GetMessage() const;
     TargetData GetTargetData() const;
 
-protected slots:
+protected Q_SLOTS:
     void onButtonCreate();
     void onButtonCancel();
 };

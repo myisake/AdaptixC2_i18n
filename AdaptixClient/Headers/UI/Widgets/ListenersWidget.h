@@ -2,10 +2,11 @@
 #define ADAPTIXCLIENT_LISTENERSWIDGET_H
 
 #include <main.h>
+#include <UI/Widgets/AbstractDock.h>
 
 class AdaptixWidget;
 
-class ListenersWidget : public QWidget
+class ListenersWidget : public DockTab
 {
     Q_OBJECT
     AdaptixWidget* adaptixWidget  = nullptr;
@@ -32,7 +33,7 @@ public:
     void EditListenerItem(const ListenerData &newListener) const;
     void RemoveListenerItem(const QString &listenerName) const;
 
-public slots:
+public Q_SLOTS:
     void handleListenersMenu( const QPoint &pos ) const;
     void onCreateListener() const;
     void onEditListener() const;

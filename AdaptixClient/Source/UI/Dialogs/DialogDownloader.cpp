@@ -11,17 +11,18 @@
 
 DialogDownloader::DialogDownloader(const QString &url, const QString &otp, const QString &savedPath, QWidget *parent) : QDialog(parent)
 {
-    this->setWindowTitle("Synchronization...");
+    this->setWindowTitle(tr("Synchronization..."));
     this->resize(400, 150);
+    this->setProperty("Main", "base");
 
     progressBar = new QProgressBar(this);
     progressBar->setRange(0, 100);
 
-    statusLabel  = new QLabel("Starting...", this);
-    speedLabel   = new QLabel("Speed: 0 KB/s", this);
-    labelPath    = new QLabel("File saved to:", this);
+    statusLabel  = new QLabel(tr("Starting..."), this);
+    speedLabel   = new QLabel(tr("Speed: 0 KB/s"), this);
+    labelPath    = new QLabel(tr("File saved to:"), this);
     lineeditPath = new QLineEdit(savedPath, this);
-    cancelButton = new QPushButton("Cancel", this);
+    cancelButton = new QPushButton(tr("Cancel"), this);
 
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(statusLabel);
@@ -46,30 +47,30 @@ DialogDownloader::DialogDownloader(const QString &url, const QString &otp, const
     connect(worker, &DownloaderWorker::progress, this, [this](const qint64 received, const qint64 total) {
         int percent = (total > 0) ? static_cast<int>((received * 100) / total) : 0;
         progressBar->setValue(percent);
-        statusLabel->setText(QString("Downloaded %1 / %2 MB").arg(received / (1024*1024)).arg(total / (1024*1024)));
+        statusLabel->setText(tr("Downloaded %1 / %2 MB").arg(received / (1024*1024)).arg(total / (1024*1024)));
     });
 
     connect(worker, &DownloaderWorker::speedUpdated, this, [this](const double kbps) {
-        speedLabel->setText(QString("Speed: %1 KB/s").arg(kbps, 0, 'f', 2));
+        speedLabel->setText(tr("Speed: %1 KB/s").arg(kbps, 0, 'f', 2));
     });
 
     connect(worker, &DownloaderWorker::finished, this, [this]() {
         if (!worker->IsError()) {
             progressBar->setValue(100);
-            statusLabel->setText("Download finished.");
+            statusLabel->setText(tr("Download finished."));
 
             speedLabel->setVisible(false);
             labelPath->setVisible(true);
             lineeditPath->setVisible(true);
             lineeditPath->selectAll();
         }
-        cancelButton->setText("Close");
+        cancelButton->setText(tr("Close"));
         disconnect(cancelButton, nullptr, nullptr, nullptr);
         connect(cancelButton, &QPushButton::clicked, this, &QDialog::accept);
     });
 
     connect(worker, &DownloaderWorker::failed, this, [this](const QString &msg) {
-        QMessageBox::critical(this, "Error", msg);
+        QMessageBox::critical(this, tr("Error"), msg);
         this->reject();
     });
 

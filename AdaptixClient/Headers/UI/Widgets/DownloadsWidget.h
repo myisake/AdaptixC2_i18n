@@ -2,10 +2,11 @@
 #define ADAPTIXCLIENT_DOWNLOADSWIDGET_H
 
 #include <main.h>
+#include <UI/Widgets/AbstractDock.h>
 
 class AdaptixWidget;
 
-class DownloadsWidget : public QWidget
+class DownloadsWidget : public DockTab
 {
     Q_OBJECT
     AdaptixWidget* adaptixWidget  = nullptr;
@@ -23,7 +24,7 @@ public:
     void EditDownloadItem(const QString &fileId, int recvSize, int state) const;
     void RemoveDownloadItem(const QString &fileId) const;
 
-public slots:
+public Q_SLOTS:
     void handleDownloadsMenu(const QPoint &pos );
     void actionSync() const;
     void actionSyncCurl() const;

@@ -48,7 +48,7 @@ public:
     void Start();
     void SetEditMode(const QString &name);
 
-protected slots:
+protected Q_SLOTS:
     void changeConfig(const QString &fn);
     void changeType(const QString &type);
     void onButtonLoad();

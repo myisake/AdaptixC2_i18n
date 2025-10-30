@@ -1,4 +1,5 @@
 #include <UI/Dialogs/DialogListener.h>
+#include <Utils/NonBlockingDialogs.h>
 #include <Client/Requestor.h>
 #include <Client/AxScript/AxElementWrappers.h>
 
@@ -20,6 +21,7 @@ void DialogListener::createUI()
 {
     this->resize(650, 650);
     this->setWindowTitle(tr("Create Listener"));
+    this->setProperty("Main", "base");
 
     listenerNameLabel = new QLabel(this);
     listenerNameLabel->setText(tr("Listener name:"));
@@ -136,12 +138,12 @@ void DialogListener::SetProfile(const AuthProfile &profile) { this->authProfile 
 
 void DialogListener::SetEditMode(const QString &name)
 {
-    this->setWindowTitle(tr("Edit Listener" ));
+    this->setWindowTitle( tr("Edit Listener") );
     inputListenerName->setText(name);
     inputListenerName->setDisabled(true);
     listenerCombobox->setDisabled(true);
     listenerTypeCombobox->setDisabled(true);
-    buttonCreate->setText("Edit");
+    buttonCreate->setText(tr("Edit"));
     editMode = true;
 }
 
@@ -177,7 +179,7 @@ void DialogListener::onButtonCreate()
         result = HttpReqListenerStart(configName, configType, configData, authProfile, &message, &ok);
 
     if( !result ) {
-        MessageError("Response timeout");
+        MessageError(tr("Response timeout"));
         return;
     }
     if ( !ok ) {
@@ -190,47 +192,49 @@ void DialogListener::onButtonCreate()
 
 void DialogListener::onButtonLoad()
 {
-    QString filePath = QFileDialog::getOpenFileName( nullptr, "Select file", QDir::homePath(), "JSON files (*.json)" );
-    if ( filePath.isEmpty())
-        return;
+    NonBlockingDialogs::getOpenFileName(this, tr("Select file"), QDir::homePath(), "JSON files (*.json)",
+        [this](const QString& filePath) {
+            if (filePath.isEmpty())
+                return;
 
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly))
-        return;
+            QFile file(filePath);
+            if (!file.open(QIODevice::ReadOnly))
+                return;
 
-    QByteArray fileContent = file.readAll();
-    file.close();
+            QByteArray fileContent = file.readAll();
+            file.close();
 
-    QJsonParseError parseError;
-    QJsonDocument document = QJsonDocument::fromJson(fileContent, &parseError);
-    if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-        MessageError("Error JSON parse");
-        return;
-    }
-    QJsonObject jsonObject = document.object();
+            QJsonParseError parseError;
+            QJsonDocument document = QJsonDocument::fromJson(fileContent, &parseError);
+            if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
+                MessageError(tr("Error JSON parse"));
+                return;
+            }
+            QJsonObject jsonObject = document.object();
 
-    if ( !jsonObject.contains("type") || !jsonObject["type"].isString() ) {
-        MessageError("Required parameter 'type' is missing");
-        return;
-    }
-    if ( !jsonObject.contains("config") || !jsonObject["config"].isString() ) {
-        MessageError("Required parameter 'config' is missing");
-        return;
-    }
+            if ( !jsonObject.contains("type") || !jsonObject["type"].isString() ) {
+                MessageError(tr("Required parameter 'type' is missing"));
+                return;
+            }
+            if ( !jsonObject.contains("config") || !jsonObject["config"].isString() ) {
+                MessageError(tr("Required parameter 'config' is missing"));
+                return;
+            }
 
-    if( jsonObject.contains("name") && jsonObject["name"].isString())
-        inputListenerName->setText( jsonObject["name"].toString() );
+            if( jsonObject.contains("name") && jsonObject["name"].isString())
+                inputListenerName->setText( jsonObject["name"].toString() );
 
-    QString configType = jsonObject["type"].toString();
-    int typeIndex = listenerCombobox->findText( configType );
-    if(typeIndex == -1 || !containers.contains(configType)) {
-        MessageError("No such listener exists");
-        return;
-    }
+            QString configType = jsonObject["type"].toString();
+            int typeIndex = listenerCombobox->findText( configType );
+            if(typeIndex == -1 || !containers.contains(configType)) {
+                MessageError(tr("No such listener exists"));
+                return;
+            }
 
-    QString configData = jsonObject["config"].toString();
-    listenerCombobox->setCurrentIndex(typeIndex);
-    containers[configType]->fromJson(configData);
+            QString configData = jsonObject["config"].toString();
+            listenerCombobox->setCurrentIndex(typeIndex);
+            containers[configType]->fromJson(configData);
+    });
 }
 
 void DialogListener::onButtonSave()
@@ -248,27 +252,29 @@ void DialogListener::onButtonSave()
     QByteArray fileContent = QJsonDocument(dataJson).toJson();
 
     QString tmpFilename = configName + "_listener_config.json";
-    QString filePath = QFileDialog::getSaveFileName( nullptr, "Save File", tmpFilename, "JSON files (*.json)" );
-    if ( filePath.isEmpty())
-        return;
+    NonBlockingDialogs::getSaveFileName(this, tr("Save File"), tmpFilename, "JSON files (*.json)",
+        [this, fileContent](const QString& filePath) {
+            if (filePath.isEmpty())
+                return;
 
-    QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly)) {
-        MessageError("Failed to open file for writing");
-        return;
-    }
+            QFile file(filePath);
+            if (!file.open(QIODevice::WriteOnly)) {
+                MessageError(tr("Failed to open file for writing"));
+                return;
+            }
 
-    file.write( fileContent );
-    file.close();
+            file.write( fileContent );
+            file.close();
 
-    QInputDialog inputDialog;
-    inputDialog.setWindowTitle("Save config");
-    inputDialog.setLabelText("File saved to:");
-    inputDialog.setTextEchoMode(QLineEdit::Normal);
-    inputDialog.setTextValue(filePath);
-    inputDialog.adjustSize();
-    inputDialog.move(QGuiApplication::primaryScreen()->geometry().center() - inputDialog.geometry().center());
-    inputDialog.exec();
+            QInputDialog inputDialog;
+            inputDialog.setWindowTitle(tr("Save config"));
+            inputDialog.setLabelText(tr("File saved to:"));
+            inputDialog.setTextEchoMode(QLineEdit::Normal);
+            inputDialog.setTextValue(filePath);
+            inputDialog.adjustSize();
+            inputDialog.move(QGuiApplication::primaryScreen()->geometry().center() - inputDialog.geometry().center());
+            inputDialog.exec();
+    });
 }
 
 void DialogListener::onButtonCancel() { this->close(); }

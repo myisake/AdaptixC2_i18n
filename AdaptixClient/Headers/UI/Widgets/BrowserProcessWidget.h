@@ -2,8 +2,10 @@
 #define ADAPTIXCLIENT_BROWSERPROCESSWIDGET_H
 
 #include <main.h>
+#include <UI/Widgets/AbstractDock.h>
 
 class Agent;
+class AdaptixWidget;
 
 typedef struct BrowserProcessData {
     int     pid;
@@ -22,8 +24,9 @@ typedef struct BrowserProcessDataUnix {
     QString process;
 } BrowserProcessDataWinUnix;
 
-class BrowserProcessWidget : public QWidget
+class BrowserProcessWidget : public DockTab
 {
+    Q_OBJECT
     QGridLayout*  mainGridLayout    = nullptr;
     QGridLayout*  listGridLayout    = nullptr;
     QTreeWidget*  treeBrowserWidget = nullptr;
@@ -49,13 +52,13 @@ class BrowserProcessWidget : public QWidget
     void filterTableWidget(const QString &filterText) const;
 
 public:
-    BrowserProcessWidget(Agent* a);
+    BrowserProcessWidget(AdaptixWidget* w, Agent* a);
     ~BrowserProcessWidget() override;
 
     void SetProcess(int msgType, const QString &data) const;
     void SetStatus(qint64 time, int msgType, const QString &message) const;
 
-public slots:
+public Q_SLOTS:
     void onReload() const;
     void onFilter(const QString &text) const;
     void actionCopyPid() const;

@@ -13,38 +13,39 @@ DialogTarget::~DialogTarget() = default;
 void DialogTarget::createUI()
 {
     this->resize(500, 250);
-    this->setWindowTitle( "Add target" );
+    this->setWindowTitle( tr("Add target") );
+    this->setProperty("Main", "base");
 
-    computerLabel = new QLabel("Computer:", this);
+    computerLabel = new QLabel(tr("Computer:"), this);
     computerInput = new QLineEdit(this);
 
-    domainLabel = new QLabel("Domain:", this);
+    domainLabel = new QLabel(tr("Domain:"), this);
     domainInput = new QLineEdit(this);
 
-    addressLabel = new QLabel("Address:", this);
+    addressLabel = new QLabel(tr("Address:"), this);
     addressInput = new QLineEdit(this);
 
-    aliveCheck = new QCheckBox("alive", this);
+    aliveCheck = new QCheckBox(tr("alive"), this);
 
-    osLabel = new QLabel("OS type:", this);
+    osLabel = new QLabel(tr("OS type:"), this);
     osCombo = new QComboBox(this);
     osCombo->addItems(QStringList() << "unknown" << "windows" << "linux" << "macos");
 
-    osDescLabel = new QLabel("OS description:", this);
+    osDescLabel = new QLabel(tr("OS description:"), this);
     osDescInput = new QLineEdit(this);
 
-    tagLabel  = new QLabel("Tag:", this);
+    tagLabel  = new QLabel(tr("Tag:"), this);
     tagInput  = new QLineEdit(this);
 
-    infoLabel  = new QLabel("Info:", this);
+    infoLabel  = new QLabel(tr("Info:"), this);
     infoInput = new QLineEdit(this);
 
     spacer_1 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
     spacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-    createButton = new QPushButton("Save", this);
+    createButton = new QPushButton(tr("Save"), this);
     createButton->setProperty("ButtonStyle", "dialog");
-    cancelButton = new QPushButton("Cancel", this);
+    cancelButton = new QPushButton(tr("Cancel"), this);
     cancelButton->setProperty("ButtonStyle", "dialog");
 
     hLayoutBottom = new QHBoxLayout();
@@ -90,7 +91,7 @@ void DialogTarget::StartDialog()
 
 void DialogTarget::SetEditmode(const TargetData &targetData)
 {
-    this->setWindowTitle( "Edit target" );
+    this->setWindowTitle( tr("Edit target") );
     this->targetId = targetData.TargetId;
 
     computerInput->setText(targetData.Computer);

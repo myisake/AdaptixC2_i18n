@@ -1,4 +1,4 @@
-# AdaptixC2_i18n v0.8 (多语言支持版)
+# AdaptixC2_i18n v0.9 (多语言支持版)
 
 ## 声明
 

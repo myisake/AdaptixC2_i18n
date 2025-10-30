@@ -1,16 +1,18 @@
 #include <Agent/Agent.h>
 #include <Konsole/konsole.h>
 #include <Workers/TerminalWorker.h>
+#include <UI/Dialogs/DialogSaveTask.h>
 #include <UI/Widgets/TerminalWidget.h>
 #include <UI/Widgets/AdaptixWidget.h>
 #include <Client/Settings.h>
 #include <Client/AuthProfile.h>
+#include <Client/Requestor.h>
 #include <MainAdaptix.h>
 
-TerminalWidget::TerminalWidget(Agent* a, QWidget* w)
+TerminalWidget::TerminalWidget(Agent* a, AdaptixWidget* w) : DockTab(QString("Terminal [%1]").arg(a->data.Id), w->GetProfile()->GetProject())
 {
     this->agent = a;
-    this->mainWidget = w;
+    this->adaptixWidget = w;
     this->termWidget = new QTermWidget(this, this);
 
     this->createUI();
@@ -25,6 +27,8 @@ TerminalWidget::TerminalWidget(Agent* a, QWidget* w)
     connect(keytabComboBox,  &QComboBox::currentTextChanged, this, &TerminalWidget::onKeytabChanged);
     connect(startButton,     &QPushButton::clicked,          this, &TerminalWidget::onStart);
     connect(stopButton,      &QPushButton::clicked,          this, &TerminalWidget::onStop);
+
+    this->dockWidget->setWidget(this);
 }
 
 TerminalWidget::~TerminalWidget() = default;
@@ -198,18 +202,50 @@ void TerminalWidget::SetSettings()
 void TerminalWidget::handleTerminalMenu(const QPoint &pos)
 {
     QMenu menu(this->termWidget);
-    menu.addAction("Copy  (Ctrl+Shift+C)", this->termWidget, &QTermWidget::copyClipboard);
-    menu.addAction("Paste (Ctrl+Shift+V)", this->termWidget, &QTermWidget::pasteClipboard);
-    menu.addAction("Clear (Ctrl+Shift+L)", this->termWidget, &QTermWidget::clear);
-    menu.addAction("Find  (Ctrl+Shift+F)", this->termWidget, &QTermWidget::toggleShowSearchBar);
+    menu.addAction(tr("Copy  (Ctrl+Shift+C)"), this->termWidget, &QTermWidget::copyClipboard);
+    menu.addAction(tr("Paste (Ctrl+Shift+V)"), this->termWidget, &QTermWidget::pasteClipboard);
+    menu.addAction(tr("Clear (Ctrl+Shift+L)"), this->termWidget, &QTermWidget::clear);
+    menu.addAction(tr("Find  (Ctrl+Shift+F)"), this->termWidget, &QTermWidget::toggleShowSearchBar);
     menu.addSeparator();
 
-    QAction *setBufferSizeAction = menu.addAction("Set buffer size...");
+    QAction *setBufferSizeAction = menu.addAction(tr("Set buffer size..."));
     connect(setBufferSizeAction, &QAction::triggered, this, [this]() {
         bool ok;
         int newSize = QInputDialog::getInt(this, "Set buffer size", "Enter maximum number of lines:", termWidget->historySize(), 100, 100000, 100, &ok);
         if (ok)
             termWidget->setHistorySize(newSize);
+    });
+
+    QAction *saveToTasksAction = menu.addAction(tr("Save to Tasks Manager"));
+    connect(saveToTasksAction, &QAction::triggered, this, [this]() {
+        QString text = termWidget->selectedText();
+
+        DialogSaveTask* dialogTask = new DialogSaveTask();
+        while (true) {
+            dialogTask->StartDialog(text);
+            if (dialogTask->IsValid())
+                break;
+
+            QString msg = dialogTask->GetMessage();
+            if (msg.isEmpty()) {
+                delete dialogTask;
+                return;
+            }
+
+            MessageError(msg);
+        }
+
+        TaskData taskData = dialogTask->GetData();
+        delete dialogTask;
+
+        QString message = "";
+        bool ok = false;
+        bool result = HttpReqTasksSave(agent->data.Id, taskData.CommandLine, taskData.MessageType, taskData.Message, taskData.Output, *(adaptixWidget->GetProfile()), &message, &ok);
+        if( !result ) {
+            MessageError(tr("Server is not responding"));
+            return;
+        }
+        if (!ok) MessageError(message);
     });
 
     menu.exec(this->termWidget->mapToGlobal(pos));
@@ -233,15 +269,14 @@ void TerminalWidget::SetKeys()
 
 void TerminalWidget::onStart()
 {
+    if ( !adaptixWidget )
+        return;
+
     programInput->setEnabled(false);
     programComboBox->setEnabled(false);
     startButton->setEnabled(false);
     stopButton->setEnabled(true);
-    this->setStatus("Waiting...");
-
-    auto adaptixWidget = qobject_cast<AdaptixWidget*>( mainWidget );
-    if ( !adaptixWidget )
-        return;
+    this->setStatus(tr("Waiting..."));
 
     auto profile = adaptixWidget->GetProfile();
 
@@ -284,7 +319,6 @@ void TerminalWidget::onRestart()
 
 void TerminalWidget::onStop()
 {
-
     if (!terminalWorker || !terminalThread)
         return;
 
@@ -336,12 +370,6 @@ void TerminalWidget::onProgramChanged()
     }
 }
 
-void TerminalWidget::onKeytabChanged()
-{
-    termWidget->setKeyBindings(keytabComboBox->currentText());
-}
+void TerminalWidget::onKeytabChanged() { termWidget->setKeyBindings(keytabComboBox->currentText()); }
 
-void TerminalWidget::recvDataFromSocket(const QByteArray &msg)
-{
-    this->termWidget->recvData(msg.constData(), msg.size());
-}
+void TerminalWidget::recvDataFromSocket(const QByteArray &msg) { this->termWidget->recvData(msg.constData(), msg.size()); }
